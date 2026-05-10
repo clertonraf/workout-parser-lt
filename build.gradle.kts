@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.workoutparser"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -18,7 +18,9 @@ repositories {
 dependencies {
     implementation("org.apache.poi:poi-ooxml:5.3.0")
     implementation("com.github.ajalt.clikt:clikt:4.4.0")
-    implementation("org.slf4j:slf4j-nop:2.0.16")
+    // slf4j-nop is only needed when running as a standalone CLI tool.
+    // Declared runtimeOnly so library consumers can exclude it cleanly.
+    runtimeOnly("org.slf4j:slf4j-nop:2.0.16")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.17.2")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
@@ -63,8 +65,9 @@ tasks.jacocoTestCoverageVerification {
     }
 }
 
+// Fat jar for CLI use — classifier "all" distinguishes it from the library jar.
 tasks.named<ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
+    archiveClassifier.set("all")
     mergeServiceFiles()
     manifest {
         attributes["Main-Class"] = "com.workoutparser.MainKt"
@@ -81,12 +84,13 @@ kotlin {
 
 publishing {
     publications {
-        create<MavenPublication>("shadow") {
+        // Thin library jar — consumers can exclude slf4j-nop if they bring their own logging.
+        create<MavenPublication>("library") {
             groupId = "com.workoutparser"
             artifactId = "workout-parser"
             version = project.version.toString()
 
-            project.shadow.component(this)
+            from(components["java"])
         }
     }
     repositories {
