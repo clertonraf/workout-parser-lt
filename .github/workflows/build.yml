@@ -7,6 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - uses: actions/checkout@v4
@@ -29,3 +32,8 @@ jobs:
           name: workout-parser-jar
           path: build/libs/workout-parser-*.jar
           retention-days: 30
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publishShadowPublicationToGitHubPackagesRepository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

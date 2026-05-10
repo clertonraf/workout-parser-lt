@@ -5,6 +5,7 @@ plugins {
     application
     id("com.github.johnrengelman.shadow") version "8.1.1"
     jacoco
+    `maven-publish`
 }
 
 group = "com.workoutparser"
@@ -76,4 +77,26 @@ tasks.check {
 
 kotlin {
     jvmToolchain(21)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("shadow") {
+            groupId = "com.workoutparser"
+            artifactId = "workout-parser"
+            version = project.version.toString()
+
+            project.shadow.component(this)
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/clertonraf/workout-parser-lt")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
